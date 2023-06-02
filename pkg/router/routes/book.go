@@ -8,25 +8,41 @@ import (
 
 func SetupBookRoutes(r chi.Router) chi.Router {
 	bookRoutes := r.Route("/book", func(r chi.Router) {
-		r.Use(middlewares.JWT)
+		assembleBookGet(r)
 		assembleBookPost(r)
+		assembleBookPut(r)
+		assembleBookDelete(r)
 	})
 	return bookRoutes
 }
 
+func assembleBookGet(r chi.Router) {
+	r.Get("/", controllers.IndexBook)
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.BookCtx)
+		r.Get("/{bookID}", controllers.ShowBook)
+	})
+}
+
 func assembleBookPost(r chi.Router) {
-	//r.Post("/register", func(w http.ResponseWriter, r *http.Request) {
-	//	key := []byte("AAAAAAAAA")
-	//	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-	//		"username": "yofs",
-	//	})
-	//	s, err := token.SignedString(key)
-	//	if err != nil {
-	//		w.WriteHeader(http.StatusInternalServerError)
-	//		w.Write([]byte(fmt.Sprintf("AN ERROR HAS OCCURED: %v", err)))
-	//		return
-	//	}
-	//	w.Write([]byte(s))
-	//})
-	r.Post("/store", controllers.StoreBook)
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.JWT)
+		r.Post("/store", controllers.StoreBook)
+	})
+}
+
+func assembleBookPut(r chi.Router) {
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.JWT)
+		r.Use(middlewares.BookCtx)
+		r.Put("/{bookID}", controllers.UpdateBook)
+	})
+}
+
+func assembleBookDelete(r chi.Router) {
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.JWT)
+		r.Use(middlewares.BookCtx)
+		r.Delete("/{bookID}", controllers.DeleteBook)
+	})
 }
